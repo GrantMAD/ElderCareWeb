@@ -19,12 +19,16 @@ export function useCheckins(elderId?: string, days = 30) {
       return
     }
     try {
+      if (!elderId) {
+        setCheckins([])
+        return
+      }
       const supabase = createClient()
       const since = new Date(Date.now() - days * 86400000).toISOString()
       const { data, error: err } = await supabase
         .from('wellness_checkins')
         .select('*')
-        .eq('elder_id', elderId!)
+        .eq('elder_id', elderId)
         .gte('scheduled_time', since)
         .order('scheduled_time', { ascending: false })
       if (err) throw err

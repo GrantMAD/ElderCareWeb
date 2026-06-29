@@ -19,11 +19,15 @@ export function useMedications(elderId?: string) {
       return
     }
     try {
+      if (!elderId) {
+        setMedications([])
+        return
+      }
       const supabase = createClient()
       const { data, error: err } = await supabase
         .from('medications')
         .select('*, schedules:medication_schedules(*)')
-        .eq('elder_id', elderId!)
+        .eq('elder_id', elderId)
         .order('name')
       if (err) throw err
       setMedications(data ?? [])

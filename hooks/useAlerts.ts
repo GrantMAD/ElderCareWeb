@@ -25,11 +25,15 @@ export function useAlerts(familyId?: string) {
       return
     }
     try {
+      if (!familyId) {
+        setAlerts([])
+        return
+      }
       const supabase = createClient()
       const { data, error: err } = await supabase
         .from('emergency_alerts')
         .select('*')
-        .eq('family_id', familyId!)
+        .eq('family_id', familyId)
         .order('created_at', { ascending: false })
       if (err) throw err
       setAlerts((data ?? []) as EmergencyAlert[])

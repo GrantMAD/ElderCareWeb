@@ -19,11 +19,15 @@ export function useAppointments(elderId?: string) {
       return
     }
     try {
+      if (!elderId) {
+        setAppointments([])
+        return
+      }
       const supabase = createClient()
       const { data, error: err } = await supabase
         .from('appointments')
         .select('*')
-        .eq('elder_id', elderId!)
+        .eq('elder_id', elderId)
         .order('appointment_date', { ascending: false })
       if (err) throw err
       setAppointments(data ?? [])

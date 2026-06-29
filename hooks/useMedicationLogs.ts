@@ -19,12 +19,16 @@ export function useMedicationLogs(elderId?: string, days = 30) {
       return
     }
     try {
+      if (!elderId) {
+        setLogs([])
+        return
+      }
       const supabase = createClient()
       const since = new Date(Date.now() - days * 86400000).toISOString()
       const { data, error: err } = await supabase
         .from('medication_logs')
         .select('*')
-        .eq('elder_id', elderId!)
+        .eq('elder_id', elderId)
         .gte('logged_at', since)
         .order('logged_at', { ascending: false })
       if (err) throw err
