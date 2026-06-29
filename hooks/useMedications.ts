@@ -37,5 +37,25 @@ export function useMedications(elderId?: string) {
 
   useEffect(() => { fetchMedications() }, [fetchMedications])
 
-  return { medications, loading, error, refetch: fetchMedications }
+  const addMedication = async (med: Omit<Medication, 'id' | 'created_at'>) => {
+    if (USE_MOCK) {
+      const newMed: Medication = { ...med, id: `med-${Date.now()}`, created_at: new Date().toISOString() }
+      setMedications(prev => [...prev, newMed])
+      return newMed
+    }
+    const supabase = createClient()
+    const { data } = await (supabase as any).from('medications').insert(med).select().single()
+    if (data) setMedications(prev => [...prev, data])
+    return data
+  }
+
+  const updateMedication = async (id: string, updates: Partial<Medication>) => {
+    setMedications(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m))
+    if (!USE_MOCK) {
+      const supabase = createClient()
+      await (supabase as any).from('medications').update(updates).eq('id', id)
+    }
+  }
+
+  return { medications, loading, error, refetch: fetchMedications, addMedication, updateMedication }
 }

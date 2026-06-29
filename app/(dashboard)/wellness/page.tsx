@@ -5,9 +5,9 @@ import { CheckinHistoryTable } from '@/components/wellness/CheckinHistoryTable'
 import { useCheckins } from '@/hooks/useCheckins'
 
 export default function WellnessPage() {
-  const { recentCheckins, loading } = useCheckins()
+  const { checkins, loading } = useCheckins()
 
-  const latestCheckin = recentCheckins?.[0]
+  const latestCheckin = checkins?.[0]
 
   return (
     <div className="space-y-8">
@@ -23,12 +23,12 @@ export default function WellnessPage() {
           <WellnessSummaryCard latestCheckin={latestCheckin} />
         </div>
         <div className="lg:col-span-2">
-          <WellnessTrendChart checkins={recentCheckins || []} loading={loading} />
+          <WellnessTrendChart checkins={checkins || []} loading={loading} />
         </div>
       </div>
 
       <div>
-        <CheckinHistoryTable checkins={recentCheckins || []} loading={loading} />
+        <CheckinHistoryTable checkins={checkins || []} loading={loading} />
       </div>
     </div>
   )

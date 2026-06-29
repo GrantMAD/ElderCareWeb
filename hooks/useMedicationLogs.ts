@@ -39,5 +39,9 @@ export function useMedicationLogs(elderId?: string, days = 30) {
 
   useEffect(() => { fetchLogs() }, [fetchLogs])
 
-  return { logs, loading, error, refetch: fetchLogs }
+  // expectedLogsCount: a simple estimate of how many doses are expected today
+  // In mock mode, derive from the logs themselves; in real mode this would come from schedules
+  const expectedLogsCount = USE_MOCK ? MOCK_MEDICATION_LOGS.length : logs.length
+
+  return { logs, loading, error, refetch: fetchLogs, expectedLogsCount }
 }

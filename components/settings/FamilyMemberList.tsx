@@ -44,7 +44,7 @@ export function FamilyMemberList({ members, loading, onRemove }: FamilyMemberLis
                 <h4 className="font-semibold text-surface-900 dark:text-surface-100">
                   {member.profile?.full_name || 'Unknown User'}
                 </h4>
-                <Badge className={member.role === 'primary_caregiver' ? 'bg-brand-100 text-brand-700' : 'bg-surface-100 text-surface-700'}>
+                <Badge className={member.is_primary_caregiver ? 'bg-brand-100 text-brand-700' : 'bg-surface-100 text-surface-700'}>
                   {member.role.replace('_', ' ')}
                 </Badge>
               </div>
@@ -66,7 +66,7 @@ export function FamilyMemberList({ members, loading, onRemove }: FamilyMemberLis
             </div>
           </div>
           
-          {member.role !== 'primary_caregiver' && onRemove && (
+          {!member.is_primary_caregiver && onRemove && (
             <Button 
               variant="ghost" 
               className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 w-full sm:w-auto"

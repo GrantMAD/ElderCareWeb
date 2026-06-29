@@ -67,7 +67,7 @@ export function CheckinHistoryTable({ checkins, loading }: CheckinHistoryTablePr
                 <Td>{checkin.status === 'completed' ? (checkin.mood_score || '-') : '-'}</Td>
                 <Td>{checkin.status === 'completed' ? (checkin.energy_score || '-') : '-'}</Td>
                 <Td>{checkin.status === 'completed' ? (checkin.pain_score ?? '-') : '-'}</Td>
-                <Td className="max-w-[200px] truncate" title={checkin.notes}>
+                <Td className="max-w-[200px] truncate" title={checkin.notes || undefined}>
                   {checkin.notes || '-'}
                 </Td>
               </Tr>

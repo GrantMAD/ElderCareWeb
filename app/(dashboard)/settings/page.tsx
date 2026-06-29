@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { useFamilyDashboard } from '@/hooks/useFamilyDashboard'
+import { MOCK_FAMILY_MEMBERS } from '@/lib/mock-data'
 import { UserPlus, Save } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -13,19 +14,19 @@ export default function SettingsPage() {
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
   const [elderName, setElderName] = useState(data?.elder?.full_name || '')
 
+  // Family members come from mock data (until a real useFamilyMembers hook is wired)
+  const familyMembers = MOCK_FAMILY_MEMBERS
+
   const handleInvite = async (email: string, role: string) => {
-    // In a real app, you would send this to your API
     console.log('Inviting', email, role)
     await new Promise(r => setTimeout(r, 1000))
   }
 
   const handleRemoveMember = (id: string) => {
-    // API call to remove member
     console.log('Removing member', id)
   }
 
   const handleSaveElder = () => {
-    // API call to save elder name
     console.log('Saving elder name', elderName)
   }
 
@@ -67,7 +68,7 @@ export default function SettingsPage() {
           </div>
           
           <FamilyMemberList 
-            members={data?.family_members || []} 
+            members={familyMembers} 
             loading={loading}
             onRemove={handleRemoveMember}
           />

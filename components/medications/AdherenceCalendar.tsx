@@ -16,7 +16,7 @@ export function AdherenceCalendar() {
     if (dayLogs.length === 0) return 'pending'
     
     const allTaken = dayLogs.every(log => log.action === 'taken')
-    const anyMissed = dayLogs.some(log => log.action === 'missed' || log.action === 'skipped')
+    const anyMissed = dayLogs.some(log => log.action === 'snoozed' || log.action === 'skipped')
     
     if (anyMissed) return 'missed'
     if (allTaken) return 'taken'
