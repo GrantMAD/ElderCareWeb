@@ -33,7 +33,7 @@ export function useFamilyDashboard(elderId?: string) {
       setData({
         ...MOCK_DASHBOARD_DATA,
         todayMeds: {
-          taken: medsRes.data?.filter(l => l.action === 'taken').length ?? 0,
+          taken: (medsRes.data as any[])?.filter(l => l.action === 'taken').length ?? 0,
           total: medsRes.data?.length ?? 0,
         },
         latestCheckin: checkinRes.data ?? undefined,

@@ -28,12 +28,12 @@ export type CheckinStatus = 'pending' | 'completed' | 'missed'
 export interface Profile {
   id: string
   email: string
-  phone?: string
+  phone?: string | null
   role: UserRole
-  full_name?: string
-  avatar_url?: string
+  full_name?: string | null
+  avatar_url?: string | null
   timezone: string
-  expo_push_token?: string
+  expo_push_token?: string | null
   created_at: string
   updated_at: string
 }
@@ -41,10 +41,10 @@ export interface Profile {
 // ─── Family ──────────────────────────────────────────────────────────────────
 export interface Family {
   id: string
-  name?: string
+  name?: string | null
   subscription_tier: SubscriptionTier
-  stripe_customer_id?: string
-  stripe_subscription_id?: string
+  stripe_customer_id?: string | null
+  stripe_subscription_id?: string | null
   created_at: string
 }
 
@@ -55,7 +55,7 @@ export interface FamilyMember {
   role: FamilyMemberRole
   is_primary_caregiver: boolean
   joined_at: string
-  profile?: Profile
+  profile?: Profile | null
 }
 
 // ─── Medication ───────────────────────────────────────────────────────────────
@@ -63,12 +63,12 @@ export interface Medication {
   id: string
   elder_id: string
   name: string
-  dosage?: string
-  instructions?: string
-  prescribed_by?: string
+  dosage?: string | null
+  instructions?: string | null
+  prescribed_by?: string | null
   is_critical: boolean
   created_at: string
-  schedules?: MedicationSchedule[]
+  schedules?: MedicationSchedule[] | null
 }
 
 export interface MedicationSchedule {
@@ -77,32 +77,32 @@ export interface MedicationSchedule {
   frequency: MedicationFrequency
   times_of_day: string[]
   days_of_week: number[]
-  start_date?: string
-  end_date?: string
+  start_date?: string | null
+  end_date?: string | null
   is_active: boolean
 }
 
 export interface MedicationLog {
   id: string
-  schedule_id?: string
+  schedule_id?: string | null
   elder_id: string
-  scheduled_time?: string
+  scheduled_time?: string | null
   action: MedicationAction
   logged_at: string
-  note?: string
-  medication?: Medication
+  note?: string | null
+  medication?: Medication | null
 }
 
 // ─── Wellness ────────────────────────────────────────────────────────────────
 export interface WellnessCheckin {
   id: string
   elder_id: string
-  scheduled_time?: string
-  completed_at?: string
-  mood_score?: number      // 1–5
-  pain_score?: number      // 0–10
-  energy_score?: number    // 1–5
-  notes?: string
+  scheduled_time?: string | null
+  completed_at?: string | null
+  mood_score?: number | null
+  pain_score?: number | null
+  energy_score?: number | null
+  notes?: string | null
   status: CheckinStatus
 }
 
@@ -110,14 +110,14 @@ export interface WellnessCheckin {
 export interface Appointment {
   id: string
   elder_id: string
-  doctor_name?: string
-  specialty?: string
-  location?: string
-  appointment_date?: string
-  notes?: string
+  doctor_name?: string | null
+  specialty?: string | null
+  location?: string | null
+  appointment_date?: string | null
+  notes?: string | null
   reminder_sent: boolean
   status: AppointmentStatus
-  created_by?: string
+  created_by?: string | null
   created_at: string
 }
 
@@ -128,15 +128,15 @@ export interface EmergencyAlert {
   family_id: string
   trigger_type: AlertTrigger
   severity: AlertSeverity
-  message?: string
-  location_lat?: number
-  location_lng?: number
-  acknowledged_by?: string
-  acknowledged_at?: string
-  resolved_at?: string
+  message?: string | null
+  location_lat?: number | null
+  location_lng?: number | null
+  acknowledged_by?: string | null
+  acknowledged_at?: string | null
+  resolved_at?: string | null
   created_at: string
-  elder?: Profile
-  acknowledger?: Profile
+  elder?: Profile | null
+  acknowledger?: Profile | null
 }
 
 // ─── Location ────────────────────────────────────────────────────────────────
@@ -144,9 +144,9 @@ export interface LocationSharing {
   id: string
   elder_id: string
   is_enabled: boolean
-  last_lat?: number
-  last_lng?: number
-  last_updated?: string
+  last_lat?: number | null
+  last_lng?: number | null
+  last_updated?: string | null
   visible_to: string[]
 }
 
@@ -166,7 +166,7 @@ export interface ActivityItem {
   type: ActivityType
   message: string
   timestamp: string
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown> | null
 }
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
@@ -174,7 +174,7 @@ export interface FamilyDashboardData {
   elder: Profile
   family: Family
   todayMeds: { taken: number; total: number }
-  latestCheckin?: WellnessCheckin
+  latestCheckin?: WellnessCheckin | null
   upcomingAppointments: Appointment[]
   activeAlerts: EmergencyAlert[]
   recentActivity: ActivityItem[]

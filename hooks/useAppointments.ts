@@ -44,7 +44,7 @@ export function useAppointments(elderId?: string) {
       return newAppt
     }
     const supabase = createClient()
-    const { data } = await supabase.from('appointments').insert(appt).select().single()
+    const { data } = await (supabase as any).from('appointments').insert(appt).select().single()
     if (data) setAppointments(prev => [data, ...prev])
     return data
   }
@@ -53,7 +53,7 @@ export function useAppointments(elderId?: string) {
     setAppointments(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a))
     if (!USE_MOCK) {
       const supabase = createClient()
-      await supabase.from('appointments').update(updates).eq('id', id)
+      await (supabase as any).from('appointments').update(updates).eq('id', id)
     }
   }
 

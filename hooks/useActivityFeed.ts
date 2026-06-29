@@ -6,6 +6,26 @@ import type { ActivityItem } from '@/types/app'
 
 const USE_MOCK = !process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://your-project.supabase.co'
 
+type MedicationLog = {
+  id: string
+  action: string
+  logged_at: string
+  medications: { name: string; dosage: string } | null
+}
+
+type WellnessCheckin = {
+  id: string
+  mood_score: number
+  completed_at: string | null
+  scheduled_time: string | null
+}
+
+type EmergencyAlert = {
+  id: string
+  message: string
+  created_at: string
+}
+
 export function useActivityFeed(elderId?: string) {
   const [activities, setActivities] = useState<ActivityItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -18,7 +38,6 @@ export function useActivityFeed(elderId?: string) {
       return
     }
 
-    // Build activity from real data — combine logs, check-ins, and alerts
     try {
       const supabase = createClient()
       const since = new Date(Date.now() - 24 * 3600000).toISOString()
@@ -29,20 +48,24 @@ export function useActivityFeed(elderId?: string) {
         supabase.from('emergency_alerts').select('*').eq('elder_id', elderId!).gte('created_at', since),
       ])
 
+      const logs = (logsRes.data ?? []) as MedicationLog[]
+      const checkins = (checkinRes.data ?? []) as WellnessCheckin[]
+      const alerts = (alertRes.data ?? []) as EmergencyAlert[]
+
       const items: ActivityItem[] = [
-        ...(logsRes.data ?? []).map(l => ({
+        ...logs.map(l => ({
           id: l.id,
           type: (l.action === 'taken' ? 'medication_taken' : l.action === 'skipped' ? 'medication_missed' : 'medication_snoozed') as ActivityItem['type'],
-          message: `${l.action === 'taken' ? '💊' : '⚠️'} ${(l as any).medications?.name} ${(l as any).medications?.dosage} — ${l.action}`,
+          message: `${l.action === 'taken' ? '💊' : '⚠️'} ${l.medications?.name} ${l.medications?.dosage} — ${l.action}`,
           timestamp: l.logged_at,
         })),
-        ...(checkinRes.data ?? []).map(c => ({
+        ...checkins.map(c => ({
           id: c.id,
           type: 'checkin_completed' as ActivityItem['type'],
           message: `✅ Wellness check-in completed — Mood ${c.mood_score}/5`,
           timestamp: c.completed_at ?? c.scheduled_time ?? '',
         })),
-        ...(alertRes.data ?? []).map(a => ({
+        ...alerts.map(a => ({
           id: a.id,
           type: 'sos_triggered' as ActivityItem['type'],
           message: `🆘 ${a.message}`,
@@ -60,7 +83,6 @@ export function useActivityFeed(elderId?: string) {
 
   useEffect(() => { fetchActivities() }, [fetchActivities])
 
-  // Subscribe to realtime updates
   useEffect(() => {
     if (USE_MOCK || !elderId) return
     const supabase = createClient()

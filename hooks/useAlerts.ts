@@ -6,6 +6,12 @@ import type { EmergencyAlert } from '@/types/app'
 
 const USE_MOCK = !process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://your-project.supabase.co'
 
+type AlertUpdate = {
+  acknowledged_by?: string
+  acknowledged_at?: string
+  resolved_at?: string
+}
+
 export function useAlerts(familyId?: string) {
   const [alerts, setAlerts] = useState<EmergencyAlert[]>([])
   const [loading, setLoading] = useState(true)
@@ -26,7 +32,7 @@ export function useAlerts(familyId?: string) {
         .eq('family_id', familyId!)
         .order('created_at', { ascending: false })
       if (err) throw err
-      setAlerts(data ?? [])
+      setAlerts((data ?? []) as EmergencyAlert[])
     } catch (err) {
       setError('Failed to load alerts')
       console.error(err)
@@ -46,7 +52,7 @@ export function useAlerts(familyId?: string) {
     )
     if (!USE_MOCK) {
       const supabase = createClient()
-      await supabase
+      await (supabase as any)
         .from('emergency_alerts')
         .update({ acknowledged_by: userId, acknowledged_at: now })
         .eq('id', alertId)
@@ -60,7 +66,7 @@ export function useAlerts(familyId?: string) {
     )
     if (!USE_MOCK) {
       const supabase = createClient()
-      await supabase
+      await (supabase as any)
         .from('emergency_alerts')
         .update({ resolved_at: now })
         .eq('id', alertId)
