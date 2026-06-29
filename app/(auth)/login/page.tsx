@@ -27,7 +27,7 @@ export default function LoginPage() {
 
     try {
       if (isSignUp) {
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -35,7 +35,13 @@ export default function LoginPage() {
           },
         })
         if (signUpError) throw signUpError
-        setMessage('Check your email for the confirmation link!')
+        if (data.session) {
+          // Email confirmation is disabled — user is logged in immediately
+          router.push('/dashboard')
+          router.refresh()
+        } else {
+          setMessage('Check your email for the confirmation link!')
+        }
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -46,7 +52,9 @@ export default function LoginPage() {
         router.refresh()
       }
     } catch (err: any) {
-      setError(err.message || 'Authentication failed.')
+      console.error('Auth error details:', JSON.stringify(err, null, 2))
+      const detail = err?.status ? ` (Status: ${err.status})` : ''
+      setError((err.message || 'Authentication failed.') + detail)
     } finally {
       setIsLoading(false)
     }
