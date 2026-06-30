@@ -13,7 +13,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { user, loading } = useSession()
+  const { user, loading, familyName, elderName } = useSession()
   const { alerts } = useAlerts()
   const router = useRouter()
 
@@ -40,7 +40,7 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-surface-50 dark:bg-surface-950 flex">
       {/* Desktop Sidebar */}
       <div className="hidden md:flex">
-        <Sidebar />
+        <Sidebar familyName={familyName ?? undefined} elderName={elderName ?? undefined} userEmail={user.email} />
       </div>
 
       {/* Main Content Area */}

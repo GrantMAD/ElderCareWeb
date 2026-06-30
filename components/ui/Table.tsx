@@ -26,8 +26,8 @@ export function Table({ headers, children, className, emptyMessage = 'No data fo
             </tr>
           </thead>
         )}
-        <tbody className="divide-y divide-surface-50 dark:divide-surface-700/50">
-          {isEmpty ? (
+        {isEmpty ? (
+          <tbody>
             <tr>
               <td
                 colSpan={headers?.length ?? 100}
@@ -36,10 +36,10 @@ export function Table({ headers, children, className, emptyMessage = 'No data fo
                 {emptyMessage}
               </td>
             </tr>
-          ) : (
-            children
-          )}
-        </tbody>
+          </tbody>
+        ) : (
+          children
+        )}
       </table>
     </div>
   )

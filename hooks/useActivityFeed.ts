@@ -1,10 +1,8 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { MOCK_ACTIVITY } from '@/lib/mock-data'
 import type { ActivityItem } from '@/types/app'
-
-const USE_MOCK = !process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://your-project.supabase.co'
+import { useSession } from '@/hooks/useSession'
 
 type MedicationLog = {
   id: string
@@ -30,22 +28,20 @@ export function useActivityFeed(elderId?: string) {
   const [activities, setActivities] = useState<ActivityItem[]>([])
   const [loading, setLoading] = useState(true)
 
+  const { elderId: sessionElderId } = useSession()
+  const targetId = elderId || sessionElderId
+
   const fetchActivities = useCallback(async () => {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 200))
-      setActivities(MOCK_ACTIVITY)
-      setLoading(false)
-      return
-    }
 
     try {
+      if (!targetId) return
       const supabase = createClient()
       const since = new Date(Date.now() - 24 * 3600000).toISOString()
 
       const [logsRes, checkinRes, alertRes] = await Promise.all([
-        supabase.from('medication_logs').select('*, medications(name,dosage)').eq('elder_id', elderId!).gte('logged_at', since),
-        supabase.from('wellness_checkins').select('*').eq('elder_id', elderId!).gte('completed_at', since),
-        supabase.from('emergency_alerts').select('*').eq('elder_id', elderId!).gte('created_at', since),
+        supabase.from('medication_logs').select('*, medications(name,dosage)').eq('elder_id', targetId).gte('logged_at', since),
+        supabase.from('wellness_checkins').select('*').eq('elder_id', targetId).gte('completed_at', since),
+        supabase.from('emergency_alerts').select('*').eq('elder_id', targetId).gte('created_at', since),
       ])
 
       const logs = (logsRes.data ?? []) as MedicationLog[]
@@ -79,20 +75,20 @@ export function useActivityFeed(elderId?: string) {
     } finally {
       setLoading(false)
     }
-  }, [elderId])
+  }, [targetId])
 
   useEffect(() => { fetchActivities() }, [fetchActivities])
 
   useEffect(() => {
-    if (USE_MOCK || !elderId) return
+    if (!targetId) return
     const supabase = createClient()
     const channel = supabase
-      .channel(`activity:${elderId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'medication_logs', filter: `elder_id=eq.${elderId}` }, () => fetchActivities())
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'wellness_checkins', filter: `elder_id=eq.${elderId}` }, () => fetchActivities())
+      .channel(`activity:${targetId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'medication_logs', filter: `elder_id=eq.${targetId}` }, () => fetchActivities())
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'wellness_checkins', filter: `elder_id=eq.${targetId}` }, () => fetchActivities())
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [elderId, fetchActivities])
+  }, [targetId, fetchActivities])
 
   return { activities, loading, refetch: fetchActivities }
 }

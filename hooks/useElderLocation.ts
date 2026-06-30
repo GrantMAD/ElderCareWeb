@@ -1,28 +1,24 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { MOCK_LOCATION } from '@/lib/mock-data'
 import type { LocationSharing } from '@/types/app'
-
-const USE_MOCK = !process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://your-project.supabase.co'
+import { useSession } from '@/hooks/useSession'
 
 export function useElderLocation(elderId?: string) {
   const [location, setLocation] = useState<LocationSharing | null>(null)
   const [loading, setLoading] = useState(true)
 
+  const { elderId: sessionElderId } = useSession()
+  const targetId = elderId || sessionElderId
+
   const fetchLocation = useCallback(async () => {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 200))
-      setLocation(MOCK_LOCATION)
-      setLoading(false)
-      return
-    }
     try {
+      if (!targetId) return
       const supabase = createClient()
       const { data } = await supabase
         .from('location_sharing')
         .select('*')
-        .eq('elder_id', elderId!)
+        .eq('elder_id', targetId)
         .single()
       setLocation(data)
     } catch (err) {
@@ -30,7 +26,7 @@ export function useElderLocation(elderId?: string) {
     } finally {
       setLoading(false)
     }
-  }, [elderId])
+  }, [targetId])
 
   useEffect(() => { fetchLocation() }, [fetchLocation])
 

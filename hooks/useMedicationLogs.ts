@@ -1,25 +1,21 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { MOCK_MEDICATION_LOGS } from '@/lib/mock-data'
 import type { MedicationLog } from '@/types/app'
-
-const USE_MOCK = !process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://your-project.supabase.co'
+import { useSession } from '@/hooks/useSession'
 
 export function useMedicationLogs(elderId?: string, days = 30) {
   const [logs, setLogs] = useState<MedicationLog[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const { elderId: sessionElderId } = useSession()
+  const targetId = elderId || sessionElderId
+
   const fetchLogs = useCallback(async () => {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 200))
-      setLogs(MOCK_MEDICATION_LOGS)
-      setLoading(false)
-      return
-    }
+
     try {
-      if (!elderId) {
+      if (!targetId) {
         setLogs([])
         return
       }
@@ -28,7 +24,7 @@ export function useMedicationLogs(elderId?: string, days = 30) {
       const { data, error: err } = await supabase
         .from('medication_logs')
         .select('*')
-        .eq('elder_id', elderId)
+        .eq('elder_id', targetId)
         .gte('logged_at', since)
         .order('logged_at', { ascending: false })
       if (err) throw err
@@ -39,13 +35,11 @@ export function useMedicationLogs(elderId?: string, days = 30) {
     } finally {
       setLoading(false)
     }
-  }, [elderId, days])
+  }, [targetId, days])
 
   useEffect(() => { fetchLogs() }, [fetchLogs])
 
-  // expectedLogsCount: a simple estimate of how many doses are expected today
-  // In mock mode, derive from the logs themselves; in real mode this would come from schedules
-  const expectedLogsCount = USE_MOCK ? MOCK_MEDICATION_LOGS.length : logs.length
+  const expectedLogsCount = logs.length
 
   return { logs, loading, error, refetch: fetchLogs, expectedLogsCount }
 }

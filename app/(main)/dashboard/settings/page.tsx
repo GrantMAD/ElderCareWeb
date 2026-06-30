@@ -6,20 +6,22 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { useFamilyDashboard } from '@/hooks/useFamilyDashboard'
-import { MOCK_FAMILY_MEMBERS } from '@/lib/mock-data'
+import { useFamilyMembers } from '@/hooks/useFamilyMembers'
 import { UserPlus, Save } from 'lucide-react'
 
 export default function SettingsPage() {
-  const { data, loading } = useFamilyDashboard()
+  const { data, loading: dashboardLoading } = useFamilyDashboard()
+  const { members, loading: membersLoading, refetch } = useFamilyMembers(data?.family?.id)
+  
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
   const [elderName, setElderName] = useState(data?.elder?.full_name || '')
 
-  // Family members come from mock data (until a real useFamilyMembers hook is wired)
-  const familyMembers = MOCK_FAMILY_MEMBERS
+  const familyMembers = members
 
   const handleInvite = async (email: string, role: string) => {
     console.log('Inviting', email, role)
     await new Promise(r => setTimeout(r, 1000))
+    refetch()
   }
 
   const handleRemoveMember = (id: string) => {
@@ -69,7 +71,7 @@ export default function SettingsPage() {
           
           <FamilyMemberList 
             members={familyMembers} 
-            loading={loading}
+            loading={dashboardLoading || membersLoading}
             onRemove={handleRemoveMember}
           />
         </div>

@@ -1,25 +1,21 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { MOCK_CHECKINS } from '@/lib/mock-data'
 import type { WellnessCheckin } from '@/types/app'
-
-const USE_MOCK = !process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://your-project.supabase.co'
+import { useSession } from '@/hooks/useSession'
 
 export function useCheckins(elderId?: string, days = 30) {
   const [checkins, setCheckins] = useState<WellnessCheckin[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const { elderId: sessionElderId } = useSession()
+  const targetId = elderId || sessionElderId
+
   const fetchCheckins = useCallback(async () => {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 300))
-      setCheckins(MOCK_CHECKINS)
-      setLoading(false)
-      return
-    }
+
     try {
-      if (!elderId) {
+      if (!targetId) {
         setCheckins([])
         return
       }
@@ -28,7 +24,7 @@ export function useCheckins(elderId?: string, days = 30) {
       const { data, error: err } = await supabase
         .from('wellness_checkins')
         .select('*')
-        .eq('elder_id', elderId)
+        .eq('elder_id', targetId)
         .gte('scheduled_time', since)
         .order('scheduled_time', { ascending: false })
       if (err) throw err
@@ -39,7 +35,7 @@ export function useCheckins(elderId?: string, days = 30) {
     } finally {
       setLoading(false)
     }
-  }, [elderId, days])
+  }, [targetId, days])
 
   useEffect(() => { fetchCheckins() }, [fetchCheckins])
 

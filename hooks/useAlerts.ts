@@ -1,10 +1,8 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { MOCK_ALERTS } from '@/lib/mock-data'
 import type { EmergencyAlert } from '@/types/app'
-
-const USE_MOCK = !process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://your-project.supabase.co'
+import { useSession } from '@/hooks/useSession'
 
 type AlertUpdate = {
   acknowledged_by?: string
@@ -17,15 +15,13 @@ export function useAlerts(familyId?: string) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const { familyId: sessionFamilyId } = useSession()
+  const targetId = familyId || sessionFamilyId
+
   const fetchAlerts = useCallback(async () => {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 200))
-      setAlerts(MOCK_ALERTS)
-      setLoading(false)
-      return
-    }
+
     try {
-      if (!familyId) {
+      if (!targetId) {
         setAlerts([])
         return
       }
@@ -33,7 +29,7 @@ export function useAlerts(familyId?: string) {
       const { data, error: err } = await supabase
         .from('emergency_alerts')
         .select('*')
-        .eq('family_id', familyId)
+        .eq('family_id', targetId)
         .order('created_at', { ascending: false })
       if (err) throw err
       setAlerts((data ?? []) as EmergencyAlert[])
@@ -43,7 +39,7 @@ export function useAlerts(familyId?: string) {
     } finally {
       setLoading(false)
     }
-  }, [familyId])
+  }, [targetId])
 
   useEffect(() => { fetchAlerts() }, [fetchAlerts])
 
@@ -54,13 +50,11 @@ export function useAlerts(familyId?: string) {
         a.id === alertId ? { ...a, acknowledged_by: userId, acknowledged_at: now } : a
       )
     )
-    if (!USE_MOCK) {
-      const supabase = createClient()
-      await (supabase as any)
-        .from('emergency_alerts')
-        .update({ acknowledged_by: userId, acknowledged_at: now })
-        .eq('id', alertId)
-    }
+    const supabase = createClient()
+    await (supabase as any)
+      .from('emergency_alerts')
+      .update({ acknowledged_by: userId, acknowledged_at: now })
+      .eq('id', alertId)
   }
 
   const resolveAlert = async (alertId: string) => {
@@ -68,13 +62,11 @@ export function useAlerts(familyId?: string) {
     setAlerts(prev =>
       prev.map(a => (a.id === alertId ? { ...a, resolved_at: now } : a))
     )
-    if (!USE_MOCK) {
-      const supabase = createClient()
-      await (supabase as any)
-        .from('emergency_alerts')
-        .update({ resolved_at: now })
-        .eq('id', alertId)
-    }
+    const supabase = createClient()
+    await (supabase as any)
+      .from('emergency_alerts')
+      .update({ resolved_at: now })
+      .eq('id', alertId)
   }
 
   return { alerts, loading, error, refetch: fetchAlerts, acknowledgeAlert, resolveAlert }
